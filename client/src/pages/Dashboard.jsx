@@ -8,6 +8,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 
 function Dashboard() {
+  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -29,7 +30,7 @@ function Dashboard() {
   const fetchTasks = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/v1/tasks?t=${Date.now()}`);
+      const response = await fetch(`${BASE_URL}/api/v1/tasks?t=${Date.now()}`);
       const json = await response.json();
 
       if (json.success) {
@@ -51,7 +52,7 @@ function Dashboard() {
     fetchTasks();
     const checkServerHealth = async () => {
       try {
-        const response = await fetch(`/api/v1/health`);
+        const response = await fetch(`${BASE_URL}/api/v1/health`);
         setBackendStatus(response.ok? 'connected' : 'disconnected');
       } catch (error) {
         setBackendStatus('disconnected');
@@ -87,7 +88,7 @@ function Dashboard() {
       // AI ko current date bhej taaki "kal", "parso" samajh sake
       const today = new Date().toISOString();
       
-      const res = await fetch('http://localhost:5001/api/v1/ai/chat', {
+      const res = await fetch(`${BASE_URL}/api/v1/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -103,7 +104,7 @@ function Dashboard() {
 
       if (data.status === 'complete' && data.task) {
         // AI se jo task mila usko direct POST kar
-        await fetch('http://localhost:5001/api/v1/tasks', {
+        await fetch(`${BASE_URL}/api/v1/tasks`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data.task) // ← deadline already hoga isme
@@ -143,7 +144,7 @@ function Dashboard() {
     try {
       console.log('2. Calling POST /api/v1/tasks');
 
-      const response = await fetch('/api/v1/tasks', {
+      const response = await fetch(`${BASE_URL}/api/v1/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -176,7 +177,7 @@ function Dashboard() {
 
   const deleteTask = async (id) => {
     try {
-      const response = await fetch(`/api/v1/tasks/${id}`, { method: 'DELETE' });
+      const response = await fetch(`${BASE_URL}/api/v1/tasks/${id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to delete');
       setTasks(tasks.filter(task => task._id!== id && task.id!== id));
     } catch (error) {
