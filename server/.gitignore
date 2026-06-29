@@ -1,0 +1,10 @@
+# Dependency directory
+node_modules/
+
+# Local active configuration file
+.env
+
+# Diagnostic logs
+logs/
+*.log
+npm-debug.log*

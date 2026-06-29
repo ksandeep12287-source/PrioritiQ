@@ -1,0 +1,17 @@
+{
+  "name": "prioritiq",
+  "version": "1.0.0",
+  "description": "Production-ready MERN project skeleton for PrioritiQ",
+  "main": "server/src/index.js",
+  "scripts": {
+    "install-all": "npm install && npm install --prefix client && npm install --prefix server",
+    "client:install": "npm install --prefix client",
+    "server:install": "npm install --prefix server",
+    "client": "npm run dev --prefix client",
+    "server": "npm run dev --prefix server",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
