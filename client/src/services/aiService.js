@@ -1,14 +1,11 @@
 import axios from 'axios';
 
-// Production URL - Vercel env se aayega, local pe fallback
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
-
 // 👇 YE LINE SABSE UPAR ADD KAR - Refresh tak same rahega
 const SESSION_ID = 'user_' + Date.now();
 
 export const analyzeVoice = async (text) => {
   try {
-    const response = await axios.post(`${BASE_URL}/api/v1/ai/analyze`, { text });
+    const response = await axios.post('/api/v1/ai/analyze', { text });
     return response.data;
   } catch (error) {
     const msg = error.response?.data?.message || 'AI analysis failed';
@@ -19,7 +16,7 @@ export const analyzeVoice = async (text) => {
 // 👇 YE NAYA FUNCTION ADD KAR - CHAT KE LIYE
 export const chatWithAI = async (message) => {
   try {
-    const response = await axios.post(`${BASE_URL}/api/v1/ai/chat`, { 
+    const response = await axios.post('/api/v1/ai/chat', { 
       message: message,
       sessionId: SESSION_ID  // ← YE ZAROORI HAI
     });
