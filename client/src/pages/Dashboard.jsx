@@ -28,8 +28,7 @@ function Dashboard() {
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [voiceUnlocked, setVoiceUnlocked] = useState(false); // <-- YE LINE 31 KE BAAD DAAL DE
-
+  
   const fetchTasks = async () => {
     try {
       setIsLoading(true);
@@ -118,49 +117,26 @@ function Dashboard() {
       setAgentReply('Error ho gaya');
     }
   };
-  
-  const unlockAudio = async () => {
-  console.log("🔊 Button clicked - Starting voice enable");
-  
-  try {
-    // 1. Pehle state update kar taaki button hide ho jaye
-    setVoiceUnlocked(true);
+
     
-    // 2. Backend ko call maar test karne ke liye
-    console.log("📡 Calling backend:", API_BASE);
-    
-    const response = await fetch(`${API_BASE}/api/v1/ai/speak`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        text: "Voice enabled ho gayi hai bhai. Ab main bolunga." 
-      })
-    });
-    
-    console.log("📥 Backend status:", response.status);
-    
-    if (!response.ok) {
-      throw new Error(`Backend error: ${response.status}`);
+
+  const speak = async (text) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/v1/ai/speak`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      if (!response.ok) throw new Error('TTS failed');
+      const audioBlob = await response.blob();
+      const audio = new Audio(URL.createObjectURL(audioBlob));
+      audio.volume = 1;
+      await audio.play();
+    } catch (err) {
+      console.error('Audio play error:', err);
+      setAgentReply('Awaz play nahi hui');
     }
-    
-    const audioBlob = await response.blob();
-    console.log("🎵 Audio received, size:", audioBlob.size);
-    
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const audio = new Audio(audioUrl);
-    audio.volume = 1;
-    
-    await audio.play();
-    setAgentReply('Voice enabled! Ab agent bolega 🔊');
-    console.log("✅ Voice test successful");
-    
-  } catch (err) {
-    console.error("❌ Voice enable failed:", err);
-    setVoiceUnlocked(false); // Wapas button dikha de
-    setAgentReply(`Error: ${err.message}. VITE_API_URL check kar`);
-    alert(`Voice enable nahi hua: ${err.message}`);
   }
-}
 
   
   const toggleAgent = () => {
@@ -340,43 +316,7 @@ function Dashboard() {
         <div className="content-body">
           {activeTab === 'dashboard' && (
             <>
-                            {/* ENABLE VOICE BUTTON - SABSE UPAR */}
-              {!voiceUnlocked && (
-                <div style={{
-                  background: '#fef3c7', border: '1px solid #f59e0b', 
-                  padding: '16px', borderRadius: '12px', marginBottom: '20px', 
-                  textAlign: 'center'
-                }}>
-                  <p style={{margin: '0 0 12px', fontSize: '14px', color: '#92400e'}}>
-                    Agent ki awaz sunne ke liye click karo
-                  </p>
-                  <button 
-                     onClick={(e) => {
-                                        e.stopPropagation();
-                                        console.log("BUTTON DABA");
-                                        unlockAudio();
-                           }}
-                               onMouseDown={(e) => e.stopPropagation()}
-                               style={{
-                                  background: '#3b82f6', 
-                                  color: 'white', 
-                                  border: 'none',
-                                  padding: '10px 20px', 
-                                  borderRadius: '8px', 
-                                  fontWeight: '700',
-                                  cursor: 'pointer', 
-                                  display: 'inline-flex', 
-                                  alignItems: 'center', 
-                                  gap: '8px',
-                                  position: 'relative', 
-                                  zIndex: 99999
-                            }}
-                            >
-                            🔊 Enable Agent Voice
-                  </button>
-                </div>
-              )}
-
+                            
               {/* AGENTIC AI CARD - NAYA */}
               <div style={{
                 background: 'linear-gradient(135deg, #667eea, #764ba2)',
