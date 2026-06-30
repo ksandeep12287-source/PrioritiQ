@@ -21,12 +21,14 @@ function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
 
+
   // AGENT STATES - NAYA
   const [sessionId] = useState(() => `session_${Date.now()}`);
   const [agentReply, setAgentReply] = useState('Bolo, kya kaam hai?');
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [voiceUnlocked, setVoiceUnlocked] = useState(false); // <-- YE LINE 31 KE BAAD DAAL DE
 
   const fetchTasks = async () => {
     try {
@@ -117,13 +119,40 @@ function Dashboard() {
     }
   };
 
-  const speak = (text) => {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-IN';
-    window.speechSynthesis.speak(utterance);
-  };
+    const unlockAudio = async () => {
+    try {
+      const audio = new Audio();
+      await audio.play();
+      setVoiceUnlocked(true);
+      setAgentReply('Voice enabled! Ab agent bolega 🔊');
+    } catch (err) {
+      setAgentReply('Volume badhao ya silent mode off karo');
+    }
+  }
 
+  const speak = async (text) => {
+    if (!voiceUnlocked) {
+      setAgentReply('Pehle "Enable Voice" button dabao');
+      return;
+    }
+    try {
+      const response = await fetch(`${API_BASE}/api/v1/ai/speak`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      if (!response.ok) throw new Error('TTS failed');
+      const audioBlob = await response.blob();
+      const audio = new Audio(URL.createObjectURL(audioBlob));
+      audio.volume = 1;
+      await audio.play();
+    } catch (err) {
+      console.error('Audio play error:', err);
+      setAgentReply('Awaz play nahi hui');
+    }
+  }
+
+  
   const toggleAgent = () => {
     if (isListening) {
       recognitionRef.current.stop();
@@ -301,6 +330,29 @@ function Dashboard() {
         <div className="content-body">
           {activeTab === 'dashboard' && (
             <>
+                            {/* ENABLE VOICE BUTTON - SABSE UPAR */}
+              {!voiceUnlocked && (
+                <div style={{
+                  background: '#fef3c7', border: '1px solid #f59e0b', 
+                  padding: '16px', borderRadius: '12px', marginBottom: '20px', 
+                  textAlign: 'center'
+                }}>
+                  <p style={{margin: '0 0 12px', fontSize: '14px', color: '#92400e'}}>
+                    Agent ki awaz sunne ke liye click karo
+                  </p>
+                  <button 
+                    onClick={unlockAudio}
+                    style={{
+                      background: '#3b82f6', color: 'white', border: 'none',
+                      padding: '10px 20px', borderRadius: '8px', fontWeight: '700',
+                      cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px'
+                    }}
+                  >
+                    🔊 Enable Agent Voice
+                  </button>
+                </div>
+              )}
+
               {/* AGENTIC AI CARD - NAYA */}
               <div style={{
                 background: 'linear-gradient(135deg, #667eea, #764ba2)',
