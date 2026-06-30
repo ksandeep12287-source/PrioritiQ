@@ -364,7 +364,7 @@ function Dashboard() {
                   />
                   <div className="selected-date-tasks">
                     <h4>Tasks on {selectedDate.toDateString()}</h4>
-                    {selectedDateTasks.length > 0? (
+                                        {selectedDateTasks.length > 0? (
                       selectedDateTasks.map(task => (
                         <div key={task._id || task.id} className="task-item">
                           <div className="task-content">
@@ -377,6 +377,7 @@ function Dashboard() {
                                 {task.deadline? new Date(task.deadline).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'No time'}
                               </span>
                             </div>
+                          </div>
                           <div className="task-actions">
                             <button
                               className="btn-icon-action delete"
