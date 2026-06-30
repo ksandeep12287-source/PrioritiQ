@@ -148,7 +148,7 @@ CURRENT DATE: ${now.toDateString()}
 
 DEADLINE PARSING - CRITICAL:
 1. "kal" / "tomorrow" = ${new Date(now.getTime() + 86400000).toISOString().split('T')[0]}T17:00:00.000Z
-2. "parso" = ${new Date(now.getTime() + 172800000).toISOString().split('T')[0]}T17:00:00.000Z  
+2. "Date"/parso" = ${new Date(now.getTime() + 172800000).toISOString().split('T')[0]}T17:00:00.000Z  
 3. "aaj" / "today" = ${todayISO.split('T')[0]}T17:00:00.000Z
 4. "subah 10 baje" = 10:00:00.000Z, "shaam 6 baje" = 18:00:00.000Z
 5. Time na bole to 17:00:00 use kar
@@ -156,7 +156,7 @@ DEADLINE PARSING - CRITICAL:
 
 FLOW:
 - title empty → ask title
-- title has value + deadline null → ask deadline: "Deadline kab tak? aaj/kal/parso"
+- title has value + deadline null → ask deadline: "Deadline kab tak? today/tomorrow/Date"
 - title+deadline has value + priority null → ask priority: "Priority kya rakhu? high/medium/low"
 - title+deadline+priority has value → status:"complete"
 
