@@ -14,14 +14,14 @@ function Dashboard() {
 
   const [taskTitle, setTaskTitle] = useState('');
   const [taskPriority, setTaskPriority] = useState('medium');
-  const [taskDeadline, setTaskDeadline] = useState(''); // ← YE ADD KAR
+  const [taskDeadline, setTaskDeadline] = useState('');
   const [backendStatus, setBackendStatus] = useState('checking');
   const [activeTab, setActiveTab] = useState('dashboard');
   const navigate = useNavigate();
   const location = useLocation();
 
-  // AGENT STATES - NAYA
-  const [sessionId] = useState(() => session_${Date.now()});
+  // AGENT STATES
+  const [sessionId] = useState(() => `session_${Date.now()}`);
   const [agentReply, setAgentReply] = useState('Bolo, kya kaam hai?');
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef(null);
@@ -30,7 +30,7 @@ function Dashboard() {
   const fetchTasks = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(${API_BASE}/api/v1/tasks?t=${Date.now()});
+      const response = await fetch(`${API_BASE}/api/v1/tasks?t=${Date.now()}`);
       const json = await response.json();
 
       if (json.success) {
@@ -52,7 +52,7 @@ function Dashboard() {
     fetchTasks();
     const checkServerHealth = async () => {
       try {
-        const response = await fetch(${API_BASE}/api/v1/health);
+        const response = await fetch(`${API_BASE}/api/v1/health`);
         setBackendStatus(response.ok? 'connected' : 'disconnected');
       } catch (error) {
         setBackendStatus('disconnected');
@@ -63,7 +63,7 @@ function Dashboard() {
     return () => clearInterval(interval);
   }, [location.key]);
 
-  // AGENT SPEECH SETUP - NAYA
+  // AGENT SPEECH SETUP
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
@@ -80,21 +80,20 @@ function Dashboard() {
     recognitionRef.current.onend = () => setIsListening(false);
   }, []);
 
-  // AGENT HANDLERS - NAYA
+  // AGENT HANDLERS
   const handleAgentMessage = async (text) => {
     if (!text.trim()) return;
 
     try {
-      // AI ko current date bhej taaki "kal", "parso" samajh sake
       const today = new Date().toISOString();
-      
-      const res = await fetch(${API_BASE}/api/v1/ai/chat, {
+
+      const res = await fetch(`${API_BASE}/api/v1/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message: text, 
+        body: JSON.stringify({
+          message: text,
           sessionId,
-          currentDate: today // ← YE ADD KAR
+          currentDate: today
         })
       });
 
@@ -103,13 +102,12 @@ function Dashboard() {
       speak(data.reply);
 
       if (data.status === 'complete' && data.task) {
-        // AI se jo task mila usko direct POST kar
-        await fetch(${API_BASE}/api/v1/tasks, {
+        await fetch(`${API_BASE}/api/v1/tasks`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data.task) // ← deadline already hoga isme
+          body: JSON.stringify(data.task)
         });
-        fetchTasks(); // Calendar refresh ho jayega
+        fetchTasks();
       }
     } catch (err) {
       setAgentReply('Error ho gaya');
@@ -144,18 +142,18 @@ function Dashboard() {
     try {
       console.log('2. Calling POST /api/v1/tasks');
 
-      const response = await fetch(${API_BASE}/api/v1/tasks, {
+      const response = await fetch(`${API_BASE}/api/v1/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          title: taskTitle.trim(), 
-          priority: taskPriority || 'medium', 
-          deadline: taskDeadline || null, // ← YE LINE ADD KAR
+        body: JSON.stringify({
+          title: taskTitle.trim(),
+          priority: taskPriority || 'medium',
+          deadline: taskDeadline || null,
           description: '',
           status: 'pending'
         })
       });
-     
+
       const json = await response.json();
       console.log('3. Backend response:', json, 'Status:', response.status);
 
@@ -167,7 +165,7 @@ function Dashboard() {
       setTasks(prev => [newTask,...prev]);
       setTaskTitle('');
       setTaskPriority('medium');
-      setTaskDeadline(''); // ← YE BHI ADD KAR
+      setTaskDeadline('');
 
     } catch (error) {
       console.error('5. FAILED:', error);
@@ -177,7 +175,7 @@ function Dashboard() {
 
   const deleteTask = async (id) => {
     try {
-      const response = await fetch(${API_BASE}/api/v1/tasks/${id}, { method: 'DELETE' });
+      const response = await fetch(`${API_BASE}/api/v1/tasks/${id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to delete');
       setTasks(tasks.filter(task => task._id!== id && task.id!== id));
     } catch (error) {
@@ -201,7 +199,7 @@ function Dashboard() {
   const mediumCount = tasks.filter(t => (t.priority || 'medium') === 'medium').length;
   const lowCount = tasks.filter(t => (t.priority || 'medium') === 'low').length;
 
-  // CALENDAR LOGIC - Phase 6.5
+  // CALENDAR LOGIC
   const tasksByDate = tasks.reduce((acc, task) => {
     if (!task.deadline) return acc;
     const dateKey = new Date(task.deadline).toDateString();
@@ -242,28 +240,28 @@ function Dashboard() {
 
         <nav className="menu-section">
           <div
-            className={menu-item ${activeTab === 'dashboard'? 'active' : ''}}
+            className={`menu-item ${activeTab === 'dashboard'? 'active' : ''}`}
             onClick={() => setActiveTab('dashboard')}
           >
             <LayoutDashboard size={18} />
             <span>Dashboard</span>
           </div>
           <div
-            className={menu-item ${activeTab === 'create'? 'active' : ''}}
+            className={`menu-item ${activeTab === 'create'? 'active' : ''}`}
             onClick={() => navigate('/create-task')}
           >
             <Plus size={18} />
             <span>Voice Task</span>
           </div>
           <div
-            className={menu-item ${activeTab === 'analytics'? 'active' : ''}}
+            className={`menu-item ${activeTab === 'analytics'? 'active' : ''}`}
             onClick={() => setActiveTab('analytics')}
           >
             <BarChart3 size={18} />
             <span>Insights</span>
           </div>
           <div
-            className={menu-item ${activeTab === 'settings'? 'active' : ''}}
+            className={`menu-item ${activeTab === 'settings'? 'active' : ''}`}
             onClick={() => setActiveTab('settings')}
           >
             <Settings size={18} />
@@ -276,7 +274,7 @@ function Dashboard() {
             <div className="connection-info">
               <span className="connection-title">API Status</span>
               <span className="connection-status">
-                <span className={pulse-dot ${backendStatus === 'connected'? 'connected' : 'disconnected'}}></span>
+                <span className={`pulse-dot ${backendStatus === 'connected'? 'connected' : 'disconnected'}`}></span>
                 {backendStatus === 'connected'? 'Online' : backendStatus === 'checking'? 'Checking...' : 'Offline'}
               </span>
             </div>
@@ -300,7 +298,6 @@ function Dashboard() {
         <div className="content-body">
           {activeTab === 'dashboard' && (
             <>
-              {/* AGENTIC AI CARD - NAYA */}
               <div style={{
                 background: 'linear-gradient(135deg, #667eea, #764ba2)',
                 color: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px'
@@ -354,7 +351,6 @@ function Dashboard() {
                 </div>
               </div>
 
-              {/* CALENDAR SECTION - Phase 6.5 */}
               <div className="dashboard-grid">
                 <div className="panel-card">
                   <div className="panel-header">
@@ -374,15 +370,13 @@ function Dashboard() {
                           <div className="task-content">
                             <div className="task-title">{task.title}</div>
                             <div className="task-meta">
-                              <span className={priority-badge ${task.priority || 'medium'}}>
+                              <span className={`priority-badge ${task.priority || 'medium'}`}>
                                 {task.priority || 'medium'}
                               </span>
                               <span className="task-date">
                                 {task.deadline? new Date(task.deadline).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'No time'}
                               </span>
                             </div>
-                          </div>
-                          {/* YE 5 LINES ADD KAR */}
                           <div className="task-actions">
                             <button
                               className="btn-icon-action delete"
@@ -436,7 +430,6 @@ function Dashboard() {
                       </select>
                     </div>
 
-                    {/* YE PURA BLOCK ADD KAR */}
                     <div className="form-group">
                       <label htmlFor="task-deadline">Deadline</label>
                       <input
@@ -479,7 +472,7 @@ function Dashboard() {
                         <div className="task-content">
                           <div className="task-title">{task.title}</div>
                           <div className="task-meta">
-                            <span className={priority-badge ${task.priority || 'medium'}}>
+                            <span className={`priority-badge ${task.priority || 'medium'}`}>
                                 {task.priority || 'medium'}
                             </span>
                             <span className="task-date">
