@@ -118,39 +118,49 @@ function Dashboard() {
       setAgentReply('Error ho gaya');
     }
   };
-
-    const unlockAudio = async () => {
-    try {
-      const audio = new Audio();
-      await audio.play();
-      setVoiceUnlocked(true);
-      setAgentReply('Voice enabled! Ab agent bolega 🔊');
-    } catch (err) {
-      setAgentReply('Volume badhao ya silent mode off karo');
+  
+  const unlockAudio = async () => {
+  console.log("🔊 Button clicked - Starting voice enable");
+  
+  try {
+    // 1. Pehle state update kar taaki button hide ho jaye
+    setVoiceUnlocked(true);
+    
+    // 2. Backend ko call maar test karne ke liye
+    console.log("📡 Calling backend:", API_BASE);
+    
+    const response = await fetch(`${API_BASE}/api/v1/ai/speak`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        text: "Voice enabled ho gayi hai bhai. Ab main bolunga." 
+      })
+    });
+    
+    console.log("📥 Backend status:", response.status);
+    
+    if (!response.ok) {
+      throw new Error(`Backend error: ${response.status}`);
     }
+    
+    const audioBlob = await response.blob();
+    console.log("🎵 Audio received, size:", audioBlob.size);
+    
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+    audio.volume = 1;
+    
+    await audio.play();
+    setAgentReply('Voice enabled! Ab agent bolega 🔊');
+    console.log("✅ Voice test successful");
+    
+  } catch (err) {
+    console.error("❌ Voice enable failed:", err);
+    setVoiceUnlocked(false); // Wapas button dikha de
+    setAgentReply(`Error: ${err.message}. VITE_API_URL check kar`);
+    alert(`Voice enable nahi hua: ${err.message}`);
   }
-
-  const speak = async (text) => {
-    if (!voiceUnlocked) {
-      setAgentReply('Pehle "Enable Voice" button dabao');
-      return;
-    }
-    try {
-      const response = await fetch(`${API_BASE}/api/v1/ai/speak`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
-      });
-      if (!response.ok) throw new Error('TTS failed');
-      const audioBlob = await response.blob();
-      const audio = new Audio(URL.createObjectURL(audioBlob));
-      audio.volume = 1;
-      await audio.play();
-    } catch (err) {
-      console.error('Audio play error:', err);
-      setAgentReply('Awaz play nahi hui');
-    }
-  }
+}
 
   
   const toggleAgent = () => {
@@ -341,14 +351,28 @@ function Dashboard() {
                     Agent ki awaz sunne ke liye click karo
                   </p>
                   <button 
-                    onClick={unlockAudio}
-                    style={{
-                      background: '#3b82f6', color: 'white', border: 'none',
-                      padding: '10px 20px', borderRadius: '8px', fontWeight: '700',
-                      cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px'
-                    }}
-                  >
-                    🔊 Enable Agent Voice
+                     onClick={(e) => {
+                                        e.stopPropagation();
+                                        console.log("BUTTON DABA");
+                                        unlockAudio();
+                           }}
+                               onMouseDown={(e) => e.stopPropagation()}
+                               style={{
+                                  background: '#3b82f6', 
+                                  color: 'white', 
+                                  border: 'none',
+                                  padding: '10px 20px', 
+                                  borderRadius: '8px', 
+                                  fontWeight: '700',
+                                  cursor: 'pointer', 
+                                  display: 'inline-flex', 
+                                  alignItems: 'center', 
+                                  gap: '8px',
+                                  position: 'relative', 
+                                  zIndex: 99999
+                            }}
+                            >
+                            🔊 Enable Agent Voice
                   </button>
                 </div>
               )}
