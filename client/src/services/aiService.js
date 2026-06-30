@@ -1,5 +1,8 @@
 import axios from 'axios';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+axios.defaults.baseURL = API_BASE;
+
 // 👇 YE LINE SABSE UPAR ADD KAR - Refresh tak same rahega
 const SESSION_ID = 'user_' + Date.now();
 
