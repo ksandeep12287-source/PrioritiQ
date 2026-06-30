@@ -225,18 +225,36 @@ OUTPUT ONLY THIS JSON:
     console.log('FULL ERROR:', err.message, err);
     logger.error('Chat controller error:', err.message);
 
-    if (err.status === 429 || err.error?.code === 429 || err.message?.includes("RESOURCE_EXHAUSTED")) {
-      return res.status(429).json({
-        success: false,
-        code: "QUOTA_EXCEEDED",
-        reply: "AI busy hai, smart offline parser use kiya gaya. Phir se try karo."
+    // 429 aur 503 dono ke liye local parser chalao
+    if (err.status === 429 || err.status === 503 || err.error?.code === 429 || err.message?.includes("RESOURCE_EXHAUSTED") || err.message?.includes("UNAVAILABLE")) {
+      logger.warn('Gemini down. Using local parser fallback.');
+      let state = conversationSessions.get(req.body.sessionId || 'default_user') || {
+        step: "collecting",
+        task: { title: "", description: "", deadline: null, priority: null }
+      };
+      
+      const parsed = localTaskParser(req.body.message, state);
+      
+      // State update karo
+      state.task = parsed.updatedTask;
+      state.step = parsed.nextStep;
+      conversationSessions.set(req.body.sessionId || 'default_user', state);
+      
+      return res.json({
+        success: true,
+        status: parsed.status,
+        reply: parsed.reply,
+        sessionId: req.body.sessionId || 'default_user',
+        task: null
       });
     }
 
     res.status(500).json({
       success: false,
       status: "error",
-      reply: "Sorry yaar, samajh nahi paya. Phir se bolo."
+      reply: "Sorry yaar, kuch gadbad ho gayi. Phir se bolo."
+    
+  
     });
   }
 };
